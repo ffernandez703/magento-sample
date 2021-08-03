@@ -1,0 +1,4 @@
+var/
+pub/media
+docker_volumes
+docker-compose.y*

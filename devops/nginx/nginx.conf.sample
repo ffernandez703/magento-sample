@@ -1,0 +1,95 @@
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+# For ECS environments, you can mount a docker volume to this location to append
+# configuration files to main nginx.conf
+include /etc/nginx/conf.d/*.global.conf;
+
+events {
+    worker_connections 1024;
+    # multi_accept on;
+}
+
+
+http {
+    # Basic Settings
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    # server_tokens off;
+    # server_names_hash_bucket_size 64;
+    # server_name_in_redirect off;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+	##
+	# SSL Settings
+	##
+
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
+	ssl_prefer_server_ciphers on;
+    # Gzip Settings
+    gzip on;
+    gzip_disable "msie6";
+    # gzip_vary on;
+    # gzip_proxied any;
+    # gzip_comp_level 6;
+    # gzip_buffers 16 8k;
+    # gzip_http_version 1.1;
+    # gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+
+    # Define fastcgi port/socket
+    upstream fastcgi_backend {
+        server  127.0.0.1:9000;
+    }
+
+    # Turn on real IP module
+    real_ip_recursive on;
+
+    # Look for Client IP Address in the below defined header
+    real_ip_header X-Forwarded-For;
+
+    # The real IP module will only be used when the remote IP address trusted.
+    set_real_ip_from 0.0.0.0/0;
+
+    # Detect when HTTPS is used
+    map $scheme $fastcgi_https { 
+        default off;
+        https on;
+    }
+
+    # Logging Settings
+    log_format tgc_custom '$http_x_forwarded_for - $remote_user [$time_local]  '
+    '"$server_name" "$request" $status $body_bytes_sent '
+    '"$http_referer" "$http_user_agent"';
+
+    access_log /docker.stdout tgc_custom;  
+    error_log /docker.stderr warn;
+
+    #Turn on  nginx_http_rewrite_module
+    rewrite_log on;
+
+    geo $mage_404_regex {
+        default "~^(:?/?|/test404)$~";
+    }
+
+    # Reduce issues with headers and 400 responses
+    large_client_header_buffers 8 128k;
+
+    # Resolves issues with large POSTs (pricing job)
+    client_max_body_size 56M;
+    client_body_buffer_size 32M;
+
+    # For ECS environments, you can mount a docker volume to this location to append
+    # configuration files to main nginx.conf
+    include /etc/nginx/conf.d/*.http.conf;
+
+    # where vhost configs are stored
+    include /etc/nginx/sites-enabled/*;
+}

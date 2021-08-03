@@ -1,0 +1,57 @@
+version: '3'
+services:
+
+    magento:
+        build: .
+        volumes:
+          - "./docker_volumes/magento/logs:/app/var/logs"
+          - "./docker_volumes/magento/media:/app/pub/media"
+          - "./:/app"
+        ports:
+          - "80"            
+        environment:  
+          - WEB_DOCUMENT_ROOT=/app/pub              
+    #     depends_on:
+    #       - db
+    #       - elasticsearch
+    #       - redis-config
+    #       - redis-fpc
+    #       - redis-sessions
+      
+    # db:
+    #     image: percona:5.7
+    #     ports:
+    #       - "3306"   
+    #     environment:
+    #       - MYSQL_ROOT_PASSWORD=rootpassword
+    #       - MYSQL_DATABASE=magento2
+    #       - MYSQL_USER=magento-dbuser
+    #       - MYSQL_PASSWORD=mysqlpassword
+    #     volumes:
+    #       - "./docker_volumes/db/db:/var/lib/mysql"
+    #       - "./docker_volumes/db/logs/mysql:/var/log/mysql"
+      
+    # elasticsearch:
+    #     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+    #     ports:
+    #       - "9200"   
+    #     environment:
+    #       - ELASTICSEARCH_PORT=9200
+    #     volumes:
+    #       - "./docker_volumes/es/esdata:/usr/share/elasticsearch/data"
+      
+    # redis-config:
+    #     image: redis:6.2.5-alpine3.14
+    #     ports:
+    #       - "6379"
+      
+    # redis-fpc:
+    #     image: redis:6.2.5-alpine3.14
+    #     ports:
+    #       - "6379"
+      
+    # redis-sessions:
+    #     image: redis:6.2.5-alpine3.14       
+    #     ports:
+    #       - "6379"
+     
